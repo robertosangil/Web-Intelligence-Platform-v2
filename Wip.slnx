@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="src/Wip.Api/Wip.Api.csproj" />
+  <Project Path="src/Wip.Application/Wip.Application.csproj" />
+  <Project Path="src/Wip.Domain/Wip.Domain.csproj" />
+  <Project Path="src/Wip.Infrastructure/Wip.Infrastructure.csproj" />
+  <Project Path="src/Wip.Persistence/Wip.Persistence.csproj" />
+  <Project Path="src/Wip.Worker/Wip.Worker.csproj" />
+  <Project Path="tests/Wip.Api.Tests/Wip.Api.Tests.csproj" />
+  <Project Path="tests/Wip.Worker.Tests/Wip.Worker.Tests.csproj" />
+</Solution>

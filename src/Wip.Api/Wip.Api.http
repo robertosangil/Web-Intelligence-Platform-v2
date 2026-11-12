@@ -1,0 +1,9 @@
+@Wip.Api_HostAddress = http://localhost:5080
+
+GET {{Wip.Api_HostAddress}}/api/v1/health
+Accept: application/json
+
+###
+
+GET {{Wip.Api_HostAddress}}/openapi/v1.json
+Accept: application/json
