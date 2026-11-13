@@ -13,4 +13,6 @@ description: Deliver or review an approved WIP v2 PBI from repository inspection
 6. Validate the affected surfaces using current observable evidence. Use the backend, frontend, or verification skill when its trigger applies.
 7. Inspect the final diff and repository status. Report files changed, commands and results, acceptance-criteria status, limitations, unresolved decisions, and one `PASS`, `CONDITIONAL`, `FAIL`, or `UNVERIFIED` verdict.
 
+For sequential delivery, finish one PBI before selecting another. When the task explicitly authorizes Git integration, commit only the scoped PBI change, push it, and merge through the approved pull-request workflow. Track enhancements as separate PBIs rather than expanding the active change.
+
 Never claim delegation, test execution, runtime behavior, browser behavior, deployment, or production verification without direct evidence.
