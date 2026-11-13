@@ -18,6 +18,26 @@ public sealed class WipDbContext(DbContextOptions<WipDbContext> options)
     public DbSet<RawProviderPayload> RawProviderPayloads => Set<RawProviderPayload>();
     public DbSet<IngestionIdempotencyRecord> IngestionIdempotency => Set<IngestionIdempotencyRecord>();
     public DbSet<IngestionError> IngestionErrors => Set<IngestionError>();
+    public DbSet<CloudflareAccountSnapshot> CloudflareAccountSnapshots => Set<CloudflareAccountSnapshot>();
+    public DbSet<CloudflareAttentionItem> CloudflareAttentionItems => Set<CloudflareAttentionItem>();
+    public DbSet<CloudflareCacheInterval> CloudflareCacheIntervals => Set<CloudflareCacheInterval>();
+    public DbSet<CloudflareCacheDaily> CloudflareCacheDaily => Set<CloudflareCacheDaily>();
+    public DbSet<CloudflareConfigurationChange> CloudflareConfigurationChanges => Set<CloudflareConfigurationChange>();
+    public DbSet<CloudflareDailyReport> CloudflareDailyReports => Set<CloudflareDailyReport>();
+    public DbSet<CloudflareDnsSnapshot> CloudflareDnsSnapshots => Set<CloudflareDnsSnapshot>();
+    public DbSet<CloudflareDnssecSnapshot> CloudflareDnssecSnapshots => Set<CloudflareDnssecSnapshot>();
+    public DbSet<CloudflareHttpError> CloudflareHttpErrors => Set<CloudflareHttpError>();
+    public DbSet<CloudflareHttpErrorDaily> CloudflareHttpErrorsDaily => Set<CloudflareHttpErrorDaily>();
+    public DbSet<CloudflareOriginInterval> CloudflareOriginIntervals => Set<CloudflareOriginInterval>();
+    public DbSet<CloudflareOriginHourly> CloudflareOriginHourly => Set<CloudflareOriginHourly>();
+    public DbSet<CloudflarePerformanceConfigSnapshot> CloudflarePerformanceConfigSnapshots => Set<CloudflarePerformanceConfigSnapshot>();
+    public DbSet<CloudflareRuleSnapshot> CloudflareRuleSnapshots => Set<CloudflareRuleSnapshot>();
+    public DbSet<CloudflareSecurityConfigSnapshot> CloudflareSecurityConfigSnapshots => Set<CloudflareSecurityConfigSnapshot>();
+    public DbSet<CloudflareSecurityDaily> CloudflareSecurityDaily => Set<CloudflareSecurityDaily>();
+    public DbSet<CloudflareSslTlsSnapshot> CloudflareSslTlsSnapshots => Set<CloudflareSslTlsSnapshot>();
+    public DbSet<CloudflareTrafficInterval> CloudflareTrafficIntervals => Set<CloudflareTrafficInterval>();
+    public DbSet<CloudflareTrafficHourly> CloudflareTrafficHourly => Set<CloudflareTrafficHourly>();
+    public DbSet<CloudflareZoneSnapshot> CloudflareZoneSnapshots => Set<CloudflareZoneSnapshot>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -136,5 +156,51 @@ public sealed class WipDbContext(DbContextOptions<WipDbContext> options)
             entity.HasOne<CollectionRun>().WithMany().HasForeignKey(x => x.CollectionRunId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne<CollectionSourceAttempt>().WithMany().HasForeignKey(x => x.SourceAttemptId).OnDelete(DeleteBehavior.NoAction);
         });
+
+        ConfigureCloudflare<CloudflareAccountSnapshot>("CloudflareAccountSnapshots");
+        ConfigureCloudflare<CloudflareAttentionItem>("CloudflareAttentionItems");
+        ConfigureCloudflare<CloudflareCacheInterval>("CloudflareCacheIntervals");
+        ConfigureCloudflare<CloudflareCacheDaily>("CloudflareCacheDaily");
+        ConfigureCloudflare<CloudflareConfigurationChange>("CloudflareConfigurationChanges");
+        ConfigureCloudflare<CloudflareDailyReport>("CloudflareDailyReports");
+        ConfigureCloudflare<CloudflareDnsSnapshot>("CloudflareDnsSnapshots");
+        ConfigureCloudflare<CloudflareDnssecSnapshot>("CloudflareDnssecSnapshots");
+        ConfigureCloudflare<CloudflareHttpError>("CloudflareHttpErrors");
+        ConfigureCloudflare<CloudflareHttpErrorDaily>("CloudflareHttpErrorsDaily");
+        ConfigureCloudflare<CloudflareOriginInterval>("CloudflareOriginIntervals");
+        ConfigureCloudflare<CloudflareOriginHourly>("CloudflareOriginHourly");
+        ConfigureCloudflare<CloudflarePerformanceConfigSnapshot>("CloudflarePerformanceConfigSnapshots");
+        ConfigureCloudflare<CloudflareRuleSnapshot>("CloudflareRuleSnapshots");
+        ConfigureCloudflare<CloudflareSecurityConfigSnapshot>("CloudflareSecurityConfigSnapshots");
+        ConfigureCloudflare<CloudflareSecurityDaily>("CloudflareSecurityDaily");
+        ConfigureCloudflare<CloudflareSslTlsSnapshot>("CloudflareSslTlsSnapshots");
+        ConfigureCloudflare<CloudflareTrafficInterval>("CloudflareTrafficIntervals");
+        ConfigureCloudflare<CloudflareTrafficHourly>("CloudflareTrafficHourly");
+        ConfigureCloudflare<CloudflareZoneSnapshot>("CloudflareZoneSnapshots");
+
+        builder.Entity<CloudflareDailyReport>(entity =>
+        {
+            entity.Property(x => x.CollectionStatus).HasMaxLength(40);
+            entity.Property(x => x.DataQualityStatus).HasMaxLength(40);
+            entity.Property(x => x.ErrorRatePercentage).HasPrecision(18, 6);
+            entity.HasIndex(x => new { x.ZoneId, x.ReportDateKey }).IsUnique();
+        });
+
+        void ConfigureCloudflare<TEntity>(string tableName) where TEntity : class
+        {
+            builder.Entity<TEntity>(entity =>
+            {
+                entity.ToTable(tableName);
+                entity.HasKey("Id");
+                entity.Property<string>("RecordKey").HasMaxLength(300).IsRequired();
+                entity.Property<string>("ZoneId").HasMaxLength(100);
+                entity.Property<string>("ZoneName").HasMaxLength(255);
+                entity.Property<string>("ReportDateKey").HasMaxLength(40);
+                entity.Property<string>("PayloadJson").IsRequired(false);
+                entity.Property<DateTime>("CollectedAtUtc");
+                entity.HasIndex("RecordKey").IsUnique();
+                entity.HasIndex("ZoneId", "ReportDateKey");
+            });
+        }
     }
 }
