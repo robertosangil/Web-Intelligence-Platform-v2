@@ -43,7 +43,8 @@ builder.Services
                 : new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(signingKey))
         };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options => options.AddPolicy("Administrator", policy =>
+    policy.RequireAuthenticatedUser().RequireRole("Administrator", "Super Admin")));
 builder.Services.AddScoped<IAuthorizationHandler, ModuleAccessHandler>();
 builder.Services.AddPersistence(builder.Configuration);
 
@@ -220,6 +221,74 @@ v1.MapPost("/auth/logout", async (RefreshRequest request, WipDbContext db, Cance
     if (session is not null && session.RevokedAtUtc is null) { session.RevokedAtUtc = DateTime.UtcNow; await db.SaveChangesAsync(ct); }
     return Results.NoContent();
 }).WithTags("Authentication");
+
+var admin = v1.MapGroup("/admin").RequireAuthorization("Administrator").WithTags("Administration");
+static AdminUserResponse ToAdminUser(WipUser user, IEnumerable<string> roles) =>
+    new(user.Id, user.Email ?? string.Empty, user.FirstName, user.LastName, user.IsActive, roles.ToArray());
+static bool IsSuperAdmin(string? name) => string.Equals(name, "Super Admin", StringComparison.OrdinalIgnoreCase);
+
+admin.MapGet("/modules", async (WipDbContext db, CancellationToken ct) => Results.Ok(await db.Modules.AsNoTracking()
+    .OrderBy(x => x.GroupKey).ThenBy(x => x.SortOrder).Select(x => new AdminModuleResponse(x.Id, x.Key, x.Name, x.GroupKey, x.SortOrder)).ToListAsync(ct)));
+admin.MapGet("/users", async (UserManager<WipUser> users, CancellationToken ct) =>
+{
+    var result = new List<AdminUserResponse>();
+    foreach (var user in await users.Users.AsNoTracking().OrderBy(x => x.Email).ToListAsync(ct))
+        result.Add(ToAdminUser(user, await users.GetRolesAsync(user)));
+    return Results.Ok(result);
+});
+admin.MapPost("/users", async (CreateAdminUserRequest request, UserManager<WipUser> users, CancellationToken ct) =>
+{
+    var user = new WipUser { UserName = request.Email.Trim(), Email = request.Email.Trim(), FirstName = request.FirstName?.Trim(), LastName = request.LastName?.Trim() };
+    var created = await users.CreateAsync(user, request.Password);
+    if (!created.Succeeded) return Results.ValidationProblem(created.Errors.GroupBy(x => x.Code).ToDictionary(x => x.Key, x => x.Select(y => y.Description).ToArray()));
+    var roles = request.Roles?.Distinct(StringComparer.OrdinalIgnoreCase).ToArray() ?? [];
+    if (roles.Length > 0) { var rr = await users.AddToRolesAsync(user, roles); if (!rr.Succeeded) return Results.ValidationProblem(rr.Errors.GroupBy(x => x.Code).ToDictionary(x => x.Key, x => x.Select(y => y.Description).ToArray())); }
+    return Results.Created($"/api/v1/admin/users/{user.Id}", ToAdminUser(user, roles));
+});
+admin.MapPut("/users/{id:guid}", async (Guid id, UpdateAdminUserRequest request, ClaimsPrincipal principal, UserManager<WipUser> users, WipDbContext db, CancellationToken ct) =>
+{
+    var user = await users.FindByIdAsync(id.ToString()); if (user is null) return Results.NotFound();
+    var existing = await users.GetRolesAsync(user); var requested = request.Roles?.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+    if (requested is not null && existing.Any(IsSuperAdmin) && !requested.Any(IsSuperAdmin)) return Results.Conflict(new { error = "The Super Admin role cannot be removed." });
+    if (request.IsActive == false && existing.Any(IsSuperAdmin)) return Results.Conflict(new { error = "A Super Admin cannot be deactivated." });
+    user.FirstName = request.FirstName?.Trim() ?? user.FirstName; user.LastName = request.LastName?.Trim() ?? user.LastName;
+    if (request.IsActive.HasValue) { user.IsActive = request.IsActive.Value; user.DeactivatedAtUtc = user.IsActive ? null : DateTime.UtcNow; }
+    var updated = await users.UpdateAsync(user); if (!updated.Succeeded) return Results.ValidationProblem(updated.Errors.GroupBy(x => x.Code).ToDictionary(x => x.Key, x => x.Select(y => y.Description).ToArray()));
+    if (requested is not null) { var removing = existing.Except(requested, StringComparer.OrdinalIgnoreCase); var adding = requested.Except(existing, StringComparer.OrdinalIgnoreCase); if (removing.Any()) await users.RemoveFromRolesAsync(user, removing); if (adding.Any()) await users.AddToRolesAsync(user, adding); }
+    if (!user.IsActive) await db.RefreshSessions.Where(x => x.UserId == user.Id && x.RevokedAtUtc == null).ExecuteUpdateAsync(x => x.SetProperty(y => y.RevokedAtUtc, DateTime.UtcNow), ct);
+    return Results.Ok(ToAdminUser(user, await users.GetRolesAsync(user)));
+});
+admin.MapGet("/roles", async (RoleManager<WipRole> roles, WipDbContext db, CancellationToken ct) => Results.Ok(await roles.Roles.AsNoTracking().Select(r => new AdminRoleResponse(r.Id, r.Name!, db.RoleModules.Where(rm => rm.RoleId == r.Id).Join(db.Modules, rm => rm.ModuleId, m => m.Id, (rm, m) => m.Key).ToList())).ToListAsync(ct)));
+admin.MapPost("/roles", async (CreateAdminRoleRequest request, RoleManager<WipRole> roles, WipDbContext db, CancellationToken ct) =>
+{
+    if (string.IsNullOrWhiteSpace(request.Name) || IsSuperAdmin(request.Name)) return Results.BadRequest(new { error = "Invalid or protected role name." });
+    var moduleIds = request.ModuleIds?.Distinct().ToArray() ?? [];
+    if (moduleIds.Length != await db.Modules.CountAsync(x => moduleIds.Contains(x.Id), ct)) return Results.NotFound(new { error = "One or more module identifiers were not found." });
+    var role = new WipRole { Name = request.Name.Trim() }; var result = await roles.CreateAsync(role); if (!result.Succeeded) return Results.ValidationProblem(result.Errors.GroupBy(x => x.Code).ToDictionary(x => x.Key, x => x.Select(y => y.Description).ToArray()));
+    foreach (var moduleId in moduleIds) db.RoleModules.Add(new RoleModule { RoleId = role.Id, ModuleId = moduleId });
+    await db.SaveChangesAsync(ct); return Results.Created($"/api/v1/admin/roles/{role.Id}", new AdminRoleResponse(role.Id, role.Name!, await db.Modules.Where(x => moduleIds.Contains(x.Id)).Select(x => x.Key).ToListAsync(ct)));
+});
+admin.MapPut("/roles/{id:guid}/modules", async (Guid id, UpdateAdminRoleRequest request, RoleManager<WipRole> roles, WipDbContext db, CancellationToken ct) =>
+{
+    var role = await roles.FindByIdAsync(id.ToString()); if (role is null) return Results.NotFound(); if (IsSuperAdmin(role.Name)) return Results.Conflict(new { error = "The Super Admin role is protected." });
+    var ids = request.ModuleIds?.Distinct().ToHashSet() ?? [];
+    if (ids.Count != await db.Modules.CountAsync(x => ids.Contains(x.Id), ct)) return Results.NotFound(new { error = "One or more module identifiers were not found." });
+    var links = await db.RoleModules.Where(x => x.RoleId == id).ToListAsync(ct); db.RoleModules.RemoveRange(links); foreach (var moduleId in ids) db.RoleModules.Add(new RoleModule { RoleId = id, ModuleId = moduleId }); await db.SaveChangesAsync(ct); return Results.NoContent();
+});
+admin.MapPut("/users/{userId:guid}/roles/{roleId:guid}", async (Guid userId, Guid roleId, ClaimsPrincipal principal, UserManager<WipUser> users, RoleManager<WipRole> roles, CancellationToken ct) =>
+{
+    var user = await users.FindByIdAsync(userId.ToString()); var role = await roles.FindByIdAsync(roleId.ToString()); if (user is null || role is null) return Results.NotFound();
+    if (IsSuperAdmin(role.Name) && !principal.IsInRole("Super Admin")) return Results.Forbid();
+    if (IsSuperAdmin(role.Name) && await users.IsInRoleAsync(user, role.Name!)) return Results.NoContent();
+    var result = await users.AddToRoleAsync(user, role.Name!); return result.Succeeded ? Results.NoContent() : Results.ValidationProblem(result.Errors.GroupBy(x => x.Code).ToDictionary(x => x.Key, x => x.Select(y => y.Description).ToArray()));
+});
+admin.MapDelete("/users/{userId:guid}/roles/{roleId:guid}", async (Guid userId, Guid roleId, ClaimsPrincipal principal, UserManager<WipUser> users, RoleManager<WipRole> roles, CancellationToken ct) =>
+{
+    var user = await users.FindByIdAsync(userId.ToString()); var role = await roles.FindByIdAsync(roleId.ToString()); if (user is null || role is null) return Results.NotFound();
+    if (IsSuperAdmin(role.Name) && !principal.IsInRole("Super Admin")) return Results.Forbid();
+    if (IsSuperAdmin(role.Name)) { var count = await users.GetUsersInRoleAsync(role.Name!); if (count.Count <= 1) return Results.Conflict(new { error = "At least one Super Admin must remain." }); }
+    var result = await users.RemoveFromRoleAsync(user, role.Name!); return result.Succeeded ? Results.NoContent() : Results.ValidationProblem(result.Errors.GroupBy(x => x.Code).ToDictionary(x => x.Key, x => x.Select(y => y.Description).ToArray()));
+});
 
 v1.MapGet("/health", () => Results.Ok(new HealthResponse("Healthy", "Wip.Api", "v1")))
     .WithName("GetHealthV1")
