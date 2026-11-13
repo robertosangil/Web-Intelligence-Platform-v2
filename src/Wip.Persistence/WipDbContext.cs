@@ -60,6 +60,20 @@ public sealed class WipDbContext(DbContextOptions<WipDbContext> options)
     public DbSet<CPanelServerInfo> CPanelServerInfo => Set<CPanelServerInfo>();
     public DbSet<CPanelSslCertificate> CPanelSslCertificates => Set<CPanelSslCertificate>();
     public DbSet<CPanelTransaction> CPanelTransactions => Set<CPanelTransaction>();
+    public DbSet<WpUmbrellaApiEvidence> WpUmbrellaApiEvidence => Set<WpUmbrellaApiEvidence>();
+    public DbSet<WpUmbrellaAttentionItem> WpUmbrellaAttentionItems => Set<WpUmbrellaAttentionItem>();
+    public DbSet<WpUmbrellaBackup> WpUmbrellaBackups => Set<WpUmbrellaBackup>();
+    public DbSet<WpUmbrellaChange> WpUmbrellaChanges => Set<WpUmbrellaChange>();
+    public DbSet<WpUmbrellaDailySummary> WpUmbrellaDailySummaries => Set<WpUmbrellaDailySummary>();
+    public DbSet<WpUmbrellaPhpInfo> WpUmbrellaPhpInfo => Set<WpUmbrellaPhpInfo>();
+    public DbSet<WpUmbrellaPhpIssue> WpUmbrellaPhpIssues => Set<WpUmbrellaPhpIssue>();
+    public DbSet<WpUmbrellaPlugin> WpUmbrellaPlugins => Set<WpUmbrellaPlugin>();
+    public DbSet<WpUmbrellaProcess> WpUmbrellaProcesses => Set<WpUmbrellaProcess>();
+    public DbSet<WpUmbrellaProjectSnapshot> WpUmbrellaProjectSnapshots => Set<WpUmbrellaProjectSnapshot>();
+    public DbSet<WpUmbrellaTheme> WpUmbrellaThemes => Set<WpUmbrellaTheme>();
+    public DbSet<WpUmbrellaUptime> WpUmbrellaUptime => Set<WpUmbrellaUptime>();
+    public DbSet<WpUmbrellaUptimeIncident> WpUmbrellaUptimeIncidents => Set<WpUmbrellaUptimeIncident>();
+    public DbSet<WpUmbrellaVulnerability> WpUmbrellaVulnerabilities => Set<WpUmbrellaVulnerability>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -262,6 +276,33 @@ public sealed class WipDbContext(DbContextOptions<WipDbContext> options)
         ConfigureCPanel<CPanelTransaction>("CPanelTransactions", nameof(CPanelTransaction.TransactionId));
 
         void ConfigureCPanel<TEntity>(string tableName, string keyProperty) where TEntity : class
+        {
+            builder.Entity<TEntity>(entity =>
+            {
+                entity.ToTable(tableName);
+                entity.HasKey("Id");
+                entity.Property<string>(keyProperty).HasMaxLength(300).IsRequired();
+                entity.Property<string>("PayloadJson").IsRequired(false);
+                entity.HasIndex(keyProperty).IsUnique();
+            });
+        }
+
+        ConfigureWpUmbrella<WpUmbrellaApiEvidence>("WpUmbrellaApiEvidence", "EvidenceKey");
+        ConfigureWpUmbrella<WpUmbrellaAttentionItem>("WpUmbrellaAttentionItems", "AttentionKey");
+        ConfigureWpUmbrella<WpUmbrellaBackup>("WpUmbrellaBackups", "BackupKey");
+        ConfigureWpUmbrella<WpUmbrellaChange>("WpUmbrellaChanges", nameof(WpUmbrellaChange.ChangeKey));
+        ConfigureWpUmbrella<WpUmbrellaDailySummary>("WpUmbrellaDailySummaries", nameof(WpUmbrellaDailySummary.SummaryKey));
+        ConfigureWpUmbrella<WpUmbrellaPhpInfo>("WpUmbrellaPhpInfo", "PhpInfoKey");
+        ConfigureWpUmbrella<WpUmbrellaPhpIssue>("WpUmbrellaPhpIssues", "IssueKey");
+        ConfigureWpUmbrella<WpUmbrellaPlugin>("WpUmbrellaPlugins", nameof(WpUmbrellaPlugin.PluginKey));
+        ConfigureWpUmbrella<WpUmbrellaProcess>("WpUmbrellaProcesses", nameof(WpUmbrellaProcess.ProcessKey));
+        ConfigureWpUmbrella<WpUmbrellaProjectSnapshot>("WpUmbrellaProjectSnapshots", "ProjectKey");
+        ConfigureWpUmbrella<WpUmbrellaTheme>("WpUmbrellaThemes", nameof(WpUmbrellaTheme.ThemeKey));
+        ConfigureWpUmbrella<WpUmbrellaUptime>("WpUmbrellaUptime", "UptimeKey");
+        ConfigureWpUmbrella<WpUmbrellaUptimeIncident>("WpUmbrellaUptimeIncidents", "IncidentKey");
+        ConfigureWpUmbrella<WpUmbrellaVulnerability>("WpUmbrellaVulnerabilities", "VulnerabilityKey");
+
+        void ConfigureWpUmbrella<TEntity>(string tableName, string keyProperty) where TEntity : class
         {
             builder.Entity<TEntity>(entity =>
             {
