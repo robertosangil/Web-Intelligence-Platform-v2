@@ -291,6 +291,46 @@ v1.MapPost("/auth/logout", async (RefreshRequest request, WipDbContext db, Cance
     return Results.NoContent();
 }).WithTags("Authentication");
 
+static (int Page, int PageSize) NormalizePaging(int page, int pageSize)
+    => (Math.Max(1, page), Math.Clamp(pageSize, 1, 200));
+
+var providerReads = v1.MapGroup("/provider").RequireAuthorization().WithTags("Provider data");
+providerReads.MapGet("/cloudflare/daily", async (int page, int pageSize, WipDbContext db, CancellationToken ct) =>
+{
+    (page, pageSize) = NormalizePaging(page, pageSize);
+    var query = db.CloudflareDailyReports.AsNoTracking().OrderByDescending(x => x.ReportDateKey).ThenBy(x => x.RecordKey);
+    var total = await query.CountAsync(ct);
+    var items = await query.Skip((page - 1) * pageSize).Take(pageSize).Select(x => new CloudflareDailyRead(x.RecordKey, x.ZoneId, x.ZoneName, x.ReportDateKey, x.TotalRequests, x.TotalBandwidthBytes, x.CollectionStatus, x.DataQualityStatus)).ToListAsync(ct);
+    return Results.Ok(new PagedResponse<CloudflareDailyRead>(items, page, pageSize, total));
+}).RequireModuleAccess("cloudflare_overview");
+
+providerReads.MapGet("/godaddy/domains", async (int page, int pageSize, WipDbContext db, CancellationToken ct) =>
+{
+    (page, pageSize) = NormalizePaging(page, pageSize);
+    var query = db.GoDaddyDomainSnapshots.AsNoTracking().OrderBy(x => x.DomainKey);
+    var total = await query.CountAsync(ct);
+    var items = await query.Skip((page - 1) * pageSize).Take(pageSize).Select(x => new GoDaddyDomainRead(x.DomainKey, x.Domain, x.Status, x.ExpiresAtUtc, x.AutoRenew)).ToListAsync(ct);
+    return Results.Ok(new PagedResponse<GoDaddyDomainRead>(items, page, pageSize, total));
+}).RequireModuleAccess("godaddy_domain_status");
+
+providerReads.MapGet("/cpanel/resources", async (int page, int pageSize, WipDbContext db, CancellationToken ct) =>
+{
+    (page, pageSize) = NormalizePaging(page, pageSize);
+    var query = db.CPanelResources.AsNoTracking().OrderBy(x => x.Account).ThenBy(x => x.ResourceName);
+    var total = await query.CountAsync(ct);
+    var items = await query.Skip((page - 1) * pageSize).Take(pageSize).Select(x => new CPanelResourceRead(x.ResourceKey, x.Account, x.ResourceName, x.CurrentValue, x.LimitValue, x.Unit, x.Status)).ToListAsync(ct);
+    return Results.Ok(new PagedResponse<CPanelResourceRead>(items, page, pageSize, total));
+}).RequireModuleAccess("cpanel_resources");
+
+providerReads.MapGet("/wp-umbrella/projects", async (int page, int pageSize, WipDbContext db, CancellationToken ct) =>
+{
+    (page, pageSize) = NormalizePaging(page, pageSize);
+    var query = db.WpUmbrellaProjectSnapshots.AsNoTracking().OrderBy(x => x.SiteName).ThenBy(x => x.ProjectKey);
+    var total = await query.CountAsync(ct);
+    var items = await query.Skip((page - 1) * pageSize).Take(pageSize).Select(x => new WpUmbrellaProjectRead(x.ProjectKey, x.SiteId, x.SiteName, x.ProjectId, x.ProjectName, x.Status)).ToListAsync(ct);
+    return Results.Ok(new PagedResponse<WpUmbrellaProjectRead>(items, page, pageSize, total));
+}).RequireModuleAccess("wp_umbrella_overview");
+
 var admin = v1.MapGroup("/admin").RequireAuthorization("Administrator").WithTags("Administration");
 static AdminUserResponse ToAdminUser(WipUser user, IEnumerable<string> roles) =>
     new(user.Id, user.Email ?? string.Empty, user.FirstName, user.LastName, user.IsActive, roles.ToArray());
