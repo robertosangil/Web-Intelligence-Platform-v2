@@ -1,0 +1,4 @@
+interface:
+  display_name: "WIP .NET Engineering"
+  short_description: "Preserve WIP backend architecture decisions"
+  default_prompt: "Use $wip-dotnet-engineering to implement or review this WIP v2 backend change."

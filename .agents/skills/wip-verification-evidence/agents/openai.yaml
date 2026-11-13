@@ -1,0 +1,4 @@
+interface:
+  display_name: "WIP Verification and Evidence"
+  short_description: "Verify WIP acceptance criteria with evidence"
+  default_prompt: "Use $wip-verification-evidence to verify this WIP v2 change against its acceptance criteria."

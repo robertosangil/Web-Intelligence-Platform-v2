@@ -1,6 +1,6 @@
 # OffshoreMVP Web Intelligence Platform v2
 
-WIP v2 is the repository-managed successor to the validated WIP v1 platform. This foundation contains only the application skeleton: no product modules, provider collectors, user features, dashboard features, product entities, or migrations are present.
+WIP v2 is the repository-managed successor to the validated WIP v1 platform. This foundation contains the application skeleton and the initial Identity/access persistence model; product modules, provider collectors, dashboard features, and product entities remain outside the current scope.
 
 ## Architecture
 
@@ -22,12 +22,22 @@ web (Next.js) ---> versioned HTTP API
 - `Wip.Domain`: domain model and rules. Empty until a product PBI defines them.
 - `Wip.Application`: use cases and meaningful repository abstractions. No generic CRUD repository is provided.
 - `Wip.Infrastructure`: future external-service and platform adapters.
-- `Wip.Persistence`: EF Core, SQL Server, Code First configuration, and future migrations.
+- `Wip.Persistence`: EF Core, SQL Server, Code First configuration, Identity/access entities, and migrations.
 - `Wip.Api`: versioned HTTP API and OpenAPI document.
 - `Wip.Worker`: independent background-processing executable.
 - `web`: Next.js frontend consuming the API.
 
 EF Core supplies change tracking and unit-of-work behavior. Repository interfaces should only be introduced for meaningful domain operations.
+
+## Identity foundation
+
+PBI-AUTH-001 establishes the Identity persistence foundation in `Wip.Persistence` using ASP.NET Core Identity with GUID user and role keys. It configures unique email addresses, framework password hashing, configurable password policy, lockout defaults, and default token providers without exposing authentication endpoints yet. Token/session strategy, account flows, email delivery, role/module administration, employee association, and initial administrator bootstrap remain separate PBIs and Product Owner decisions.
+
+The current safe defaults require a 12-character password with digit, lowercase, uppercase, and non-alphanumeric characters; five failed attempts lock an account for 15 minutes. These are configuration defaults, not production policy approval.
+
+The API configures JWT bearer validation from the `Jwt` configuration section (`Issuer`, `Audience`, `SigningKey`, and `ClockSkewSeconds`). The signing key is intentionally blank in committed configuration and must be supplied through local User Secrets or an approved hosted-environment configuration. Token issuance and account endpoints are not part of this foundation.
+
+The persistence model maps Identity and access tables to `Users`, `Roles`, `UserRoles`, `UserClaims`, `UserLogins`, `UserTokens`, `RoleClaims`, `Modules`, and `RoleModules`.
 
 ## Prerequisites
 
@@ -49,10 +59,20 @@ EF Core supplies change tracking and unit-of-work behavior. Repository interface
 
    ```powershell
    dotnet user-secrets set --project src/Wip.Api "ConnectionStrings:WipDatabase" "<local SQL Server connection string>"
+   dotnet user-secrets set --project src/Wip.Api "Jwt:SigningKey" "<local development signing key>"
    dotnet user-secrets set --project src/Wip.Worker "ConnectionStrings:WipDatabase" "<local SQL Server connection string>"
    ```
 
-The API and worker can start without a database connection during foundation development. Database-dependent features and migrations must supply `ConnectionStrings:WipDatabase`. No migration exists in PBI-001.
+The API and worker can start without a database connection during foundation development. Database-dependent features and migrations must supply `ConnectionStrings:WipDatabase`. The API project has a User Secrets ID, so values set with `dotnet user-secrets` remain outside the repository. Do not put connection strings, JWT signing keys, or other credentials in `appsettings.json`, `.env`, or committed files.
+
+Apply the checked-in EF Core migrations locally after setting the design-time environment variable:
+
+```powershell
+$env:ConnectionStrings__WipDatabase = "<local SQL Server connection string>"
+dotnet ef database update --project src/Wip.Persistence --startup-project src/Wip.Api
+```
+
+The migration history includes the initial Identity schema and the subsequent rename/addition migration for the table names listed above. This documents local database setup only; it does not represent a production migration or deployment.
 
 ## Run locally
 
@@ -109,4 +129,4 @@ npm run build
 - Use environment variables or approved Azure configuration in hosted environments.
 - Never commit database passwords, provider credentials, tokens, or production connection strings.
 
-Azure resources, production configuration, deployment workflows, authentication, provider integrations, product entities, and data migration are intentionally outside PBI-001.
+Azure resources, production configuration, deployment workflows, token issuance/account flows, provider integrations, product entities, and production data migration remain outside the current foundation scope.
