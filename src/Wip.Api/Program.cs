@@ -236,19 +236,23 @@ admin.MapGet("/users", async (UserManager<WipUser> users, CancellationToken ct) 
         result.Add(ToAdminUser(user, await users.GetRolesAsync(user)));
     return Results.Ok(result);
 });
-admin.MapPost("/users", async (CreateAdminUserRequest request, UserManager<WipUser> users, CancellationToken ct) =>
+admin.MapPost("/users", async (CreateAdminUserRequest request, ClaimsPrincipal principal, UserManager<WipUser> users, RoleManager<WipRole> roleManager, CancellationToken ct) =>
 {
     var user = new WipUser { UserName = request.Email.Trim(), Email = request.Email.Trim(), FirstName = request.FirstName?.Trim(), LastName = request.LastName?.Trim() };
     var created = await users.CreateAsync(user, request.Password);
     if (!created.Succeeded) return Results.ValidationProblem(created.Errors.GroupBy(x => x.Code).ToDictionary(x => x.Key, x => x.Select(y => y.Description).ToArray()));
-    var roles = request.Roles?.Distinct(StringComparer.OrdinalIgnoreCase).ToArray() ?? [];
-    if (roles.Length > 0) { var rr = await users.AddToRolesAsync(user, roles); if (!rr.Succeeded) return Results.ValidationProblem(rr.Errors.GroupBy(x => x.Code).ToDictionary(x => x.Key, x => x.Select(y => y.Description).ToArray())); }
-    return Results.Created($"/api/v1/admin/users/{user.Id}", ToAdminUser(user, roles));
+    var roleNames = request.Roles?.Distinct(StringComparer.OrdinalIgnoreCase).ToArray() ?? [];
+    if (roleNames.Any(IsSuperAdmin) && !principal.IsInRole("Super Admin")) return Results.Forbid();
+    var knownRoles = await roleManager.Roles.Where(x => x.Name != null && roleNames.Contains(x.Name)).CountAsync(ct);
+    if (knownRoles != roleNames.Length) return Results.NotFound(new { error = "One or more role names were not found." });
+    if (roleNames.Length > 0) { var rr = await users.AddToRolesAsync(user, roleNames); if (!rr.Succeeded) return Results.ValidationProblem(rr.Errors.GroupBy(x => x.Code).ToDictionary(x => x.Key, x => x.Select(y => y.Description).ToArray())); }
+    return Results.Created($"/api/v1/admin/users/{user.Id}", ToAdminUser(user, roleNames));
 });
 admin.MapPut("/users/{id:guid}", async (Guid id, UpdateAdminUserRequest request, ClaimsPrincipal principal, UserManager<WipUser> users, WipDbContext db, CancellationToken ct) =>
 {
     var user = await users.FindByIdAsync(id.ToString()); if (user is null) return Results.NotFound();
     var existing = await users.GetRolesAsync(user); var requested = request.Roles?.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+    if (requested is not null && requested.Any(IsSuperAdmin) && !principal.IsInRole("Super Admin")) return Results.Forbid();
     if (requested is not null && existing.Any(IsSuperAdmin) && !requested.Any(IsSuperAdmin)) return Results.Conflict(new { error = "The Super Admin role cannot be removed." });
     if (request.IsActive == false && existing.Any(IsSuperAdmin)) return Results.Conflict(new { error = "A Super Admin cannot be deactivated." });
     user.FirstName = request.FirstName?.Trim() ?? user.FirstName; user.LastName = request.LastName?.Trim() ?? user.LastName;
