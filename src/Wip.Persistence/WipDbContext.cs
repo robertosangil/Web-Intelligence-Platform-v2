@@ -11,6 +11,7 @@ public sealed class WipDbContext(DbContextOptions<WipDbContext> options)
     public DbSet<Module> Modules => Set<Module>();
 
     public DbSet<RoleModule> RoleModules => Set<RoleModule>();
+    public DbSet<RefreshSession> RefreshSessions => Set<RefreshSession>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -42,6 +43,15 @@ public sealed class WipDbContext(DbContextOptions<WipDbContext> options)
             entity.HasKey(roleModule => new { roleModule.RoleId, roleModule.ModuleId });
             entity.HasOne<WipRole>().WithMany().HasForeignKey(roleModule => roleModule.RoleId);
             entity.HasOne<Module>().WithMany().HasForeignKey(roleModule => roleModule.ModuleId);
+        });
+        builder.Entity<RefreshSession>(entity =>
+        {
+            entity.ToTable("RefreshSessions");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.TokenHash).HasMaxLength(128).IsRequired();
+            entity.HasIndex(x => x.TokenHash).IsUnique();
+            entity.HasIndex(x => new { x.UserId, x.ExpiresAtUtc });
+            entity.HasOne<WipUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
