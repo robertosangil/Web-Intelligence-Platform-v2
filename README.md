@@ -41,7 +41,7 @@ PBI-AUTH-001 establishes the Identity persistence foundation in `Wip.Persistence
 
 The current local defaults require an 8-character password with digit, lowercase, uppercase, and non-alphanumeric characters; five failed attempts lock an account for 15 minutes. The shorter local minimum is a Product Owner-requested development setting and is not a production security recommendation.
 
-The API configures JWT bearer validation from the `Jwt` configuration section (`Issuer`, `Audience`, `SigningKey`, and `ClockSkewSeconds`). The signing key is intentionally blank in committed configuration and must be supplied through local User Secrets or an approved hosted-environment configuration. Token issuance and account endpoints are not part of this foundation.
+The API configures JWT bearer validation from the `Jwt` configuration section (`Issuer`, `Audience`, `SigningKey`, and `ClockSkewSeconds`). The signing key is intentionally blank in committed configuration and must be supplied through local User Secrets or an approved hosted-environment configuration. Authentication, profile, permissions, and logout flows are versioned under `/api/v1`; the frontend consumes them through its API client.
 
 The persistence model maps Identity and access tables to `Users`, `Roles`, `UserRoles`, `UserClaims`, `UserLogins`, `UserTokens`, `RoleClaims`, `Modules`, and `RoleModules`.
 
@@ -137,4 +137,4 @@ npm run build
 - Use environment variables or approved Azure configuration in hosted environments.
 - Never commit database passwords, provider credentials, tokens, or production connection strings.
 
-Azure resources, production configuration, deployment workflows, token issuance/account flows, provider integrations, product entities, and production data migration remain outside the current foundation scope.
+Azure resources, production configuration, production migrations, provider integrations, product entities, and live deployment remain outside this repository-only setup. See [SECURITY.md](SECURITY.md) for the readiness outline and security boundaries.
