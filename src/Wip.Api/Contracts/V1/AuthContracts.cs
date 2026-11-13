@@ -2,6 +2,7 @@ namespace Wip.Api.Contracts.V1;
 
 public sealed record LoginRequest(string Email, string Password);
 public sealed record RefreshRequest(string RefreshToken);
+public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 public sealed record TokenResponse(string AccessToken, string RefreshToken, DateTime AccessTokenExpiresAtUtc, DateTime RefreshTokenExpiresAtUtc);
 
 public sealed record ProfileResponse(Guid Id, string Email, string? FirstName, string? LastName, bool IsActive, DateTime? DeactivatedAtUtc);

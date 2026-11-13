@@ -144,6 +144,20 @@ static ProfileResponse ToProfile(WipUser user) =>
 
 var profile = v1.MapGroup("/me").RequireAuthorization().WithTags("Profile");
 
+profile.MapPost("/password", async (ChangePasswordRequest request, ClaimsPrincipal principal, UserManager<WipUser> users, WipDbContext db, CancellationToken ct) =>
+{
+    var id = GetUserId(principal);
+    if (id is null) return Results.Unauthorized();
+    var user = await users.FindByIdAsync(id.Value.ToString());
+    if (user is null || !user.IsActive) return Results.Unauthorized();
+    var result = await users.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+    if (!result.Succeeded) return Results.BadRequest(new { error = "The current password is incorrect or the new password is invalid." });
+    await users.UpdateSecurityStampAsync(user);
+    await db.RefreshSessions.Where(x => x.UserId == user.Id && x.RevokedAtUtc == null)
+        .ExecuteUpdateAsync(x => x.SetProperty(y => y.RevokedAtUtc, DateTime.UtcNow), ct);
+    return Results.NoContent();
+}).WithName("ChangeMyPassword");
+
 profile.MapGet("", async (ClaimsPrincipal principal, UserManager<WipUser> users, CancellationToken ct) =>
 {
     var id = GetUserId(principal);
