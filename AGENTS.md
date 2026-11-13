@@ -56,5 +56,14 @@
 
 ## Secrets and configuration
 
+## PBI delivery workflow
+
+- Work on exactly one open PBI at a time. Confirm its scope, dependencies, acceptance criteria, and authorization before editing.
+- Complete the active PBI through implementation, verification, issue evidence, and Product Owner-visible handoff before starting another PBI.
+- After a PBI passes review, commit only its scoped changes, push the branch, and merge through the approved pull-request workflow when authorized.
+- Keep enhancements and unrelated fixes out of the active change. Track them as a new GitHub PBI and leave them unimplemented until selected.
+- Use sequential identifiers such as `PBI-001`, `PBI-002`, and `PBI-003`; use labels for area or specialist ownership.
+- Before merge, report the PBI, files, agents used, commands/results, Git state, unresolved decisions, and one final verdict.
+
 - Commit only safe examples and defaults. Use .NET User Secrets or untracked local environment files for local secrets.
 - Never print, copy, or commit credentials, tokens, database passwords, private keys, or production connection strings.

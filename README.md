@@ -29,6 +29,12 @@ web (Next.js) ---> versioned HTTP API
 
 EF Core supplies change tracking and unit-of-work behavior. Repository interfaces should only be introduced for meaningful domain operations.
 
+## PBI delivery workflow
+
+WIP v2 is delivered one PBI at a time. Paolo confirms scope, dependencies, acceptance criteria, and authorization; assigns only the necessary agents; implements the bounded change; verifies it; records evidence on GitHub; and reports one final verdict. After review, the scoped change is committed, pushed, and merged when authorized. Enhancements are tracked as separate PBIs and are not mixed into active work.
+
+PBI identifiers use the sequential format `PBI-001`, `PBI-002`, `PBI-003`. Area labels identify authentication, database, frontend, security, or documentation concerns.
+
 ## Identity foundation
 
 PBI-AUTH-001 establishes the Identity persistence foundation in `Wip.Persistence` using ASP.NET Core Identity with GUID user and role keys. It configures unique email addresses, framework password hashing, configurable password policy, lockout defaults, and default token providers without exposing authentication endpoints yet. Token/session strategy, account flows, email delivery, role/module administration, employee association, and initial administrator bootstrap remain separate PBIs and Product Owner decisions.
