@@ -61,10 +61,21 @@ public sealed class CollectionRunOrchestrator(
             CreatedAtUtc = now,
             UpdatedAtUtc = now
         };
+        var sourceAttempt = new CollectionSourceAttempt
+        {
+            Id = Guid.NewGuid(),
+            CollectionRunId = run.Id,
+            SourceKey = definition.CollectorKey,
+            AttemptNumber = 1,
+            Status = "NotStarted",
+            IsRetryable = false,
+            StartedAtUtc = now
+        };
 
         await using var scope = scopeFactory.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<WipDbContext>();
         db.CollectionRuns.Add(run);
+        db.CollectionSourceAttempts.Add(sourceAttempt);
         await db.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Created collection run {CollectionRunId} for {Provider}/{CollectorKey}.", run.Id, definition.Provider, definition.CollectorKey);
         return run.Id;
