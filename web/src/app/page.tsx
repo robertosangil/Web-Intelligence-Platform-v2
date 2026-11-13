@@ -1,4 +1,5 @@
 import { ApiStatus } from "@/components/api-status";
+import { AccessPanel } from "@/components/access-panel";
 
 export default function Home() {
   return (
@@ -9,6 +10,7 @@ export default function Home() {
         The solution foundation is ready. Product modules have not been implemented.
       </p>
       <ApiStatus />
+      <AccessPanel />
     </main>
   );
 }
