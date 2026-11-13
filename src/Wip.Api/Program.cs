@@ -10,6 +10,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var signingKey = jwtSection["SigningKey"];
+if (!builder.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(signingKey))
+{
+    throw new InvalidOperationException("Jwt:SigningKey must be configured outside Development.");
+}
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
