@@ -125,6 +125,992 @@ namespace Wip.Persistence.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Wip.Persistence.CloudflareAccountSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AccountId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AccountName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("WorkflowRunId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareAccountSnapshots", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareAttentionItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Category")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Severity")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareAttentionItems", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareCacheDaily", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long?>("BandwidthBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CacheStatus")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long?>("Requests")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareCacheDaily", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareCacheInterval", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long?>("BandwidthBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("IntervalEndUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("IntervalStartUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long?>("Requests")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareCacheIntervals", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareConfigurationChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ChangeType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("ResourceId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareConfigurationChanges", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareDailyReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AccountId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CollectionStatus")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("DataQualityStatus")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<decimal?>("ErrorRatePercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long?>("TotalBandwidthBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("TotalHttpErrors")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("TotalRequests")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("WorkflowRunId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey")
+                        .IsUnique()
+                        .HasFilter("[ZoneId] IS NOT NULL AND [ReportDateKey] IS NOT NULL");
+
+                    b.ToTable("CloudflareDailyReports", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareDnsSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareDnsSnapshots", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareDnssecSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DnssecStatus")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("Enabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareDnssecSnapshots", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareHttpError", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long?>("BandwidthBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("IntervalEndUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("IntervalStartUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long?>("Requests")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("StatusCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareHttpErrors", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareHttpErrorDaily", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long?>("BandwidthBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long?>("Requests")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("StatusCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareHttpErrorsDaily", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareOriginHourly", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("AvgOriginResponseMs")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DateTimeHourUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long?>("Requests")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareOriginHourly", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareOriginInterval", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("AvgOriginResponseMs")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("IntervalEndUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("IntervalStartUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long?>("Requests")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareOriginIntervals", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflarePerformanceConfigSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ConfigurationFingerprint")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflarePerformanceConfigSnapshots", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareRuleSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("RuleCategory")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RuleId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RuleName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareRuleSnapshots", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareSecurityConfigSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ConfigurationFingerprint")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareSecurityConfigSnapshots", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareSecurityDaily", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Country")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long?>("Requests")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("SecurityAction")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareSecurityDaily", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareSslTlsSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CertificateExpiresAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("SslMode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareSslTlsSnapshots", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareTrafficHourly", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AccountId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("BandwidthBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DateTimeHourUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long?>("Requests")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("Visits")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareTrafficHourly", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareTrafficInterval", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AccountId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("BandwidthBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("IntervalEndUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("IntervalStartUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long?>("Requests")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("Visits")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareTrafficIntervals", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CloudflareZoneSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AccountId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CollectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PlanName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReportDateKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("ZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ZoneName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("ZoneStatus")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordKey")
+                        .IsUnique();
+
+                    b.HasIndex("ZoneId", "ReportDateKey");
+
+                    b.ToTable("CloudflareZoneSnapshots", (string)null);
+                });
+
             modelBuilder.Entity("Wip.Persistence.CollectionRun", b =>
                 {
                     b.Property<Guid>("Id")
