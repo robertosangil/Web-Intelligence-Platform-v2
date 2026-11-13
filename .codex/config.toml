@@ -1,0 +1,48 @@
+[agents]
+max_concurrent_threads_per_session = 4
+interrupt_message = true
+
+[agents.paolo]
+description = "Paolo coordinates WIP v2 scope, specialist dispatch, integration, and final evidence."
+config_file = "agents/coordinator.toml"
+nickname_candidates = ["Paolo", "PM", "Orchestrator"]
+
+[agents.solution-architect]
+description = "Owns WIP v2 architecture boundaries, dependencies, and technical decision analysis."
+config_file = "agents/solution-architect.toml"
+nickname_candidates = ["Solution Architect", "Architect"]
+
+[agents.dotnet-backend-api]
+description = "Owns WIP v2 ASP.NET Core, C Sharp, APIs, application services, and backend tests."
+config_file = "agents/dotnet-backend-api.toml"
+nickname_candidates = ["Dotnet Backend", "API Engineer"]
+
+[agents.database]
+description = "Owns WIP v2 SQL Server, Azure SQL, EF Core, relational design, migrations, and integrity."
+config_file = "agents/database.toml"
+nickname_candidates = ["Database Engineer", "Data Engineer"]
+
+[agents.data-collector-integration]
+description = "Owns WIP v2 provider collectors, scheduling, retries, idempotency, and integrations."
+config_file = "agents/data-collector-integration.toml"
+nickname_candidates = ["Collector Engineer", "Integration Engineer"]
+
+[agents.frontend-engineer]
+description = "Owns WIP v2 Next.js, React, TypeScript, API consumption, and frontend validation."
+config_file = "agents/frontend-engineer.toml"
+nickname_candidates = ["Frontend Engineer"]
+
+[agents.qa-test]
+description = "Independently verifies WIP v2 unit, integration, contract, regression, browser, and negative paths."
+config_file = "agents/qa-test.toml"
+nickname_candidates = ["QA Engineer", "Test Engineer"]
+
+[agents.security-devops]
+description = "Owns WIP v2 security, secrets, CI CD, Azure environments, monitoring, and rollback review."
+config_file = "agents/security-devops.toml"
+nickname_candidates = ["Security Engineer", "DevOps Engineer"]
+
+[agents.documentation]
+description = "Owns WIP v2 architecture, API, data, runbook, migration, and handover documentation."
+config_file = "agents/documentation.toml"
+nickname_candidates = ["Documentation Engineer", "Technical Writer"]

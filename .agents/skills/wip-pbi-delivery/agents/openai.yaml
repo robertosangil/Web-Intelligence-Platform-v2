@@ -1,0 +1,4 @@
+interface:
+  display_name: "WIP PBI Delivery"
+  short_description: "Deliver a scoped WIP PBI with evidence"
+  default_prompt: "Use $wip-pbi-delivery to deliver this approved WIP v2 PBI within its authorization boundaries."

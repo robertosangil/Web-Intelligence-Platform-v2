@@ -1,0 +1,4 @@
+interface:
+  display_name: "WIP Frontend Engineering"
+  short_description: "Build WIP frontend changes within its stack"
+  default_prompt: "Use $wip-frontend-engineering to implement or review this WIP v2 frontend change."
