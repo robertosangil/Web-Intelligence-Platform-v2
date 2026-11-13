@@ -148,7 +148,7 @@ profile.MapGet("", async (ClaimsPrincipal principal, UserManager<WipUser> users,
     var id = GetUserId(principal);
     if (id is null) return Results.Unauthorized();
     var user = await users.FindByIdAsync(id.Value.ToString());
-    return user is null ? Results.NotFound() : Results.Ok(ToProfile(user));
+    return user is null ? Results.NotFound() : !user.IsActive ? Results.Unauthorized() : Results.Ok(ToProfile(user));
 });
 
 profile.MapPut("", async (UpdateProfileRequest request, ClaimsPrincipal principal, UserManager<WipUser> users, CancellationToken ct) =>
@@ -157,6 +157,7 @@ profile.MapPut("", async (UpdateProfileRequest request, ClaimsPrincipal principa
     if (id is null) return Results.Unauthorized();
     var user = await users.FindByIdAsync(id.Value.ToString());
     if (user is null) return Results.NotFound();
+    if (!user.IsActive) return Results.Unauthorized();
     user.FirstName = request.FirstName?.Trim();
     user.LastName = request.LastName?.Trim();
     var result = await users.UpdateAsync(user);
@@ -194,6 +195,7 @@ profile.MapGet("/permissions", async (ClaimsPrincipal principal, UserManager<Wip
     if (id is null) return Results.Unauthorized();
     var user = await users.FindByIdAsync(id.Value.ToString());
     if (user is null) return Results.NotFound();
+    if (!user.IsActive) return Results.Unauthorized();
 
     var roles = await users.GetRolesAsync(user);
     var modules = (await (
