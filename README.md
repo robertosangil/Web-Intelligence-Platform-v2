@@ -39,7 +39,7 @@ PBI identifiers use the sequential format `PBI-001`, `PBI-002`, `PBI-003`. Area 
 
 PBI-AUTH-001 establishes the Identity persistence foundation in `Wip.Persistence` using ASP.NET Core Identity with GUID user and role keys. It configures unique email addresses, framework password hashing, configurable password policy, lockout defaults, and default token providers without exposing authentication endpoints yet. Token/session strategy, account flows, email delivery, role/module administration, employee association, and initial administrator bootstrap remain separate PBIs and Product Owner decisions.
 
-The current safe defaults require a 12-character password with digit, lowercase, uppercase, and non-alphanumeric characters; five failed attempts lock an account for 15 minutes. These are configuration defaults, not production policy approval.
+The current local defaults require an 8-character password with digit, lowercase, uppercase, and non-alphanumeric characters; five failed attempts lock an account for 15 minutes. The shorter local minimum is a Product Owner-requested development setting and is not a production security recommendation.
 
 The API configures JWT bearer validation from the `Jwt` configuration section (`Issuer`, `Audience`, `SigningKey`, and `ClockSkewSeconds`). The signing key is intentionally blank in committed configuration and must be supplied through local User Secrets or an approved hosted-environment configuration. Token issuance and account endpoints are not part of this foundation.
 
