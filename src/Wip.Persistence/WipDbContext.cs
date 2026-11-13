@@ -38,6 +38,15 @@ public sealed class WipDbContext(DbContextOptions<WipDbContext> options)
     public DbSet<CloudflareTrafficInterval> CloudflareTrafficIntervals => Set<CloudflareTrafficInterval>();
     public DbSet<CloudflareTrafficHourly> CloudflareTrafficHourly => Set<CloudflareTrafficHourly>();
     public DbSet<CloudflareZoneSnapshot> CloudflareZoneSnapshots => Set<CloudflareZoneSnapshot>();
+    public DbSet<GoDaddyApiHealth> GoDaddyApiHealth => Set<GoDaddyApiHealth>();
+    public DbSet<GoDaddyChange> GoDaddyChanges => Set<GoDaddyChange>();
+    public DbSet<GoDaddyDomainSnapshot> GoDaddyDomainSnapshots => Set<GoDaddyDomainSnapshot>();
+    public DbSet<GoDaddyIncident> GoDaddyIncidents => Set<GoDaddyIncident>();
+    public DbSet<GoDaddyMaintenance> GoDaddyMaintenance => Set<GoDaddyMaintenance>();
+    public DbSet<GoDaddyRestApiEvidence> GoDaddyRestApiEvidence => Set<GoDaddyRestApiEvidence>();
+    public DbSet<GoDaddyStatusComponent> GoDaddyStatusComponents => Set<GoDaddyStatusComponent>();
+    public DbSet<GoDaddyStatusSnapshot> GoDaddyStatusSnapshots => Set<GoDaddyStatusSnapshot>();
+    public DbSet<GoDaddyTransaction> GoDaddyTransactions => Set<GoDaddyTransaction>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -200,6 +209,28 @@ public sealed class WipDbContext(DbContextOptions<WipDbContext> options)
                 entity.Property<DateTime>("CollectedAtUtc");
                 entity.HasIndex("RecordKey").IsUnique();
                 entity.HasIndex("ZoneId", "ReportDateKey");
+            });
+        }
+
+        ConfigureGoDaddy<GoDaddyApiHealth>("GoDaddyApiHealth", "HealthKey");
+        ConfigureGoDaddy<GoDaddyChange>("GoDaddyChanges", nameof(GoDaddyChange.ChangeKey));
+        ConfigureGoDaddy<GoDaddyDomainSnapshot>("GoDaddyDomainSnapshots", nameof(GoDaddyDomainSnapshot.DomainKey));
+        ConfigureGoDaddy<GoDaddyIncident>("GoDaddyIncidents", nameof(GoDaddyIncident.IncidentKey));
+        ConfigureGoDaddy<GoDaddyMaintenance>("GoDaddyMaintenance", "MaintenanceKey");
+        ConfigureGoDaddy<GoDaddyRestApiEvidence>("GoDaddyRestApiEvidence", "ApiKey");
+        ConfigureGoDaddy<GoDaddyStatusComponent>("GoDaddyStatusComponents", nameof(GoDaddyStatusComponent.ComponentSnapshotKey));
+        ConfigureGoDaddy<GoDaddyStatusSnapshot>("GoDaddyStatusSnapshots", nameof(GoDaddyStatusSnapshot.StatusKey));
+        ConfigureGoDaddy<GoDaddyTransaction>("GoDaddyTransactions", nameof(GoDaddyTransaction.TransactionId));
+
+        void ConfigureGoDaddy<TEntity>(string tableName, string keyProperty) where TEntity : class
+        {
+            builder.Entity<TEntity>(entity =>
+            {
+                entity.ToTable(tableName);
+                entity.HasKey("Id");
+                entity.Property<string>(keyProperty).HasMaxLength(300).IsRequired();
+                entity.Property<string>("PayloadJson").IsRequired(false);
+                entity.HasIndex(keyProperty).IsUnique();
             });
         }
     }
