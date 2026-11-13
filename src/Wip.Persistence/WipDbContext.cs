@@ -47,6 +47,19 @@ public sealed class WipDbContext(DbContextOptions<WipDbContext> options)
     public DbSet<GoDaddyStatusComponent> GoDaddyStatusComponents => Set<GoDaddyStatusComponent>();
     public DbSet<GoDaddyStatusSnapshot> GoDaddyStatusSnapshots => Set<GoDaddyStatusSnapshot>();
     public DbSet<GoDaddyTransaction> GoDaddyTransactions => Set<GoDaddyTransaction>();
+    public DbSet<CPanelApiEvidence> CPanelApiEvidence => Set<CPanelApiEvidence>();
+    public DbSet<CPanelAutoSsl> CPanelAutoSsl => Set<CPanelAutoSsl>();
+    public DbSet<CPanelBackup> CPanelBackups => Set<CPanelBackup>();
+    public DbSet<CPanelCapability> CPanelCapabilities => Set<CPanelCapability>();
+    public DbSet<CPanelDailyStat> CPanelDailyStats => Set<CPanelDailyStat>();
+    public DbSet<CPanelDatabase> CPanelDatabases => Set<CPanelDatabase>();
+    public DbSet<CPanelResourceDailySummary> CPanelResourceDailySummaries => Set<CPanelResourceDailySummary>();
+    public DbSet<CPanelResourceSampleLegacy> CPanelResourceSamplesLegacy => Set<CPanelResourceSampleLegacy>();
+    public DbSet<CPanelResource> CPanelResources => Set<CPanelResource>();
+    public DbSet<CPanelServerError> CPanelServerErrors => Set<CPanelServerError>();
+    public DbSet<CPanelServerInfo> CPanelServerInfo => Set<CPanelServerInfo>();
+    public DbSet<CPanelSslCertificate> CPanelSslCertificates => Set<CPanelSslCertificate>();
+    public DbSet<CPanelTransaction> CPanelTransactions => Set<CPanelTransaction>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -223,6 +236,32 @@ public sealed class WipDbContext(DbContextOptions<WipDbContext> options)
         ConfigureGoDaddy<GoDaddyTransaction>("GoDaddyTransactions", nameof(GoDaddyTransaction.TransactionId));
 
         void ConfigureGoDaddy<TEntity>(string tableName, string keyProperty) where TEntity : class
+        {
+            builder.Entity<TEntity>(entity =>
+            {
+                entity.ToTable(tableName);
+                entity.HasKey("Id");
+                entity.Property<string>(keyProperty).HasMaxLength(300).IsRequired();
+                entity.Property<string>("PayloadJson").IsRequired(false);
+                entity.HasIndex(keyProperty).IsUnique();
+            });
+        }
+
+        ConfigureCPanel<CPanelApiEvidence>("CPanelApiEvidence", "EvidenceKey");
+        ConfigureCPanel<CPanelAutoSsl>("CPanelAutoSsl", "AutoSslKey");
+        ConfigureCPanel<CPanelBackup>("CPanelBackups", nameof(CPanelBackup.BackupKey));
+        ConfigureCPanel<CPanelCapability>("CPanelCapabilities", nameof(CPanelCapability.CapabilityKey));
+        ConfigureCPanel<CPanelDailyStat>("CPanelDailyStats", nameof(CPanelDailyStat.DailyStatKey));
+        ConfigureCPanel<CPanelDatabase>("CPanelDatabases", nameof(CPanelDatabase.DatabaseKey));
+        ConfigureCPanel<CPanelResourceDailySummary>("CPanelResourceDailySummaries", nameof(CPanelResourceDailySummary.SummaryKey));
+        ConfigureCPanel<CPanelResourceSampleLegacy>("CPanelResourceSamplesLegacy", nameof(CPanelResourceSampleLegacy.SampleKey));
+        ConfigureCPanel<CPanelResource>("CPanelResources", nameof(CPanelResource.ResourceKey));
+        ConfigureCPanel<CPanelServerError>("CPanelServerErrors", nameof(CPanelServerError.ErrorKey));
+        ConfigureCPanel<CPanelServerInfo>("CPanelServerInfo", "ServerKey");
+        ConfigureCPanel<CPanelSslCertificate>("CPanelSslCertificates", nameof(CPanelSslCertificate.CertificateKey));
+        ConfigureCPanel<CPanelTransaction>("CPanelTransactions", nameof(CPanelTransaction.TransactionId));
+
+        void ConfigureCPanel<TEntity>(string tableName, string keyProperty) where TEntity : class
         {
             builder.Entity<TEntity>(entity =>
             {
