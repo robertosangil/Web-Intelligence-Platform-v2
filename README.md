@@ -45,6 +45,8 @@ The API configures JWT bearer validation from the `Jwt` configuration section (`
 
 The persistence model maps Identity and access tables to `Users`, `Roles`, `UserRoles`, `UserClaims`, `UserLogins`, `UserTokens`, `RoleClaims`, `Modules`, and `RoleModules`.
 
+The module catalogue is fixed reference data. Each page is a separate module with a stable key, group, display name, and order; module records are not user-deletable or user-creatable. The current local migration seeds 32 page modules across Dashboard, Cloudflare, GoDaddy, cPanel, WP Umbrella, and Settings/User Management. Future provider data contracts attach to these page-level keys rather than to the navigation group headings.
+
 ## Prerequisites
 
 - .NET SDK 10.0.403 or a compatible 10.0 patch
