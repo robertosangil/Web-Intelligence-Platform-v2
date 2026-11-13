@@ -30,7 +30,10 @@ public sealed class WipDbContext(DbContextOptions<WipDbContext> options)
             entity.HasKey(module => module.Id);
             entity.Property(module => module.Key).HasMaxLength(100).IsRequired();
             entity.Property(module => module.Name).HasMaxLength(200).IsRequired();
+            entity.Property(module => module.GroupKey).HasMaxLength(100).IsRequired();
+            entity.HasIndex(module => new { module.GroupKey, module.SortOrder }).IsUnique();
             entity.HasIndex(module => module.Key).IsUnique();
+            entity.HasData(ModuleCatalog.All);
         });
 
         builder.Entity<RoleModule>(entity =>

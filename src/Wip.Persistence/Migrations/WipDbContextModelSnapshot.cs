@@ -231,6 +231,11 @@ namespace Wip.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("GroupKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Key")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -241,12 +246,276 @@ namespace Wip.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Key")
                         .IsUnique();
 
+                    b.HasIndex("GroupKey", "SortOrder")
+                        .IsUnique();
+
                     b.ToTable("Modules", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000001"),
+                            GroupKey = "dashboard",
+                            Key = "dashboard_overview",
+                            Name = "Overview",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000002"),
+                            GroupKey = "dashboard",
+                            Key = "dashboard_executive_summary",
+                            Name = "Executive Summary",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000003"),
+                            GroupKey = "dashboard",
+                            Key = "dashboard_attention_issues",
+                            Name = "Attention / Issues",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000004"),
+                            GroupKey = "dashboard",
+                            Key = "dashboard_reports",
+                            Name = "Reports",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000101"),
+                            GroupKey = "cloudflare",
+                            Key = "cloudflare_overview",
+                            Name = "Overview",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000102"),
+                            GroupKey = "cloudflare",
+                            Key = "cloudflare_trafficbandwidth",
+                            Name = "Traffic & Bandwidth",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000103"),
+                            GroupKey = "cloudflare",
+                            Key = "cloudflare_cache",
+                            Name = "Cache Performance",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000104"),
+                            GroupKey = "cloudflare",
+                            Key = "cloudflare_origin",
+                            Name = "Origin Performance",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000105"),
+                            GroupKey = "cloudflare",
+                            Key = "cloudflare_http_errors",
+                            Name = "HTTP Errors",
+                            SortOrder = 5
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000106"),
+                            GroupKey = "cloudflare",
+                            Key = "cloudflare_security",
+                            Name = "Security",
+                            SortOrder = 6
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000107"),
+                            GroupKey = "cloudflare",
+                            Key = "cloudflare_configuration_changes",
+                            Name = "Configuration & Changes",
+                            SortOrder = 7
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000108"),
+                            GroupKey = "cloudflare",
+                            Key = "cloudflare_data_quality",
+                            Name = "Data Quality",
+                            SortOrder = 8
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000201"),
+                            GroupKey = "godaddy",
+                            Key = "godaddy_overview",
+                            Name = "Overview",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000202"),
+                            GroupKey = "godaddy",
+                            Key = "godaddy_domain_status",
+                            Name = "Domain Status",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000203"),
+                            GroupKey = "godaddy",
+                            Key = "godaddy_dns",
+                            Name = "DNS",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000204"),
+                            GroupKey = "godaddy",
+                            Key = "godaddy_domain_changes",
+                            Name = "Domain Changes",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000205"),
+                            GroupKey = "godaddy",
+                            Key = "godaddy_risk_alerts",
+                            Name = "Risk / Alerts",
+                            SortOrder = 5
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000301"),
+                            GroupKey = "cpanel",
+                            Key = "cpanel_overview",
+                            Name = "Overview",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000302"),
+                            GroupKey = "cpanel",
+                            Key = "cpanel_resources",
+                            Name = "Resources",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000303"),
+                            GroupKey = "cpanel",
+                            Key = "cpanel_daily_statistics",
+                            Name = "Daily Statistics",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000304"),
+                            GroupKey = "cpanel",
+                            Key = "cpanel_server_errors",
+                            Name = "Server Errors",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000305"),
+                            GroupKey = "cpanel",
+                            Key = "cpanel_ssl_autossl",
+                            Name = "SSL / AutoSSL",
+                            SortOrder = 5
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000306"),
+                            GroupKey = "cpanel",
+                            Key = "cpanel_backups",
+                            Name = "Backups",
+                            SortOrder = 6
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000401"),
+                            GroupKey = "wp_umbrella",
+                            Key = "wp_umbrella_overview",
+                            Name = "Overview",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000402"),
+                            GroupKey = "wp_umbrella",
+                            Key = "wp_umbrella_site_health",
+                            Name = "Site Health",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000403"),
+                            GroupKey = "wp_umbrella",
+                            Key = "wp_umbrella_plugins",
+                            Name = "Plugins",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000404"),
+                            GroupKey = "wp_umbrella",
+                            Key = "wp_umbrella_themes",
+                            Name = "Themes",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000405"),
+                            GroupKey = "wp_umbrella",
+                            Key = "wp_umbrella_vulnerabilities",
+                            Name = "Vulnerabilities",
+                            SortOrder = 5
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000406"),
+                            GroupKey = "wp_umbrella",
+                            Key = "wp_umbrella_uptime",
+                            Name = "Uptime",
+                            SortOrder = 6
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000407"),
+                            GroupKey = "wp_umbrella",
+                            Key = "wp_umbrella_incidents",
+                            Name = "Incidents",
+                            SortOrder = 7
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000408"),
+                            GroupKey = "wp_umbrella",
+                            Key = "wp_umbrella_backups",
+                            Name = "Backups",
+                            SortOrder = 8
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000501"),
+                            GroupKey = "settings",
+                            Key = "settings_user_management",
+                            Name = "User Management",
+                            SortOrder = 1
+                        });
                 });
 
             modelBuilder.Entity("Wip.Persistence.RoleModule", b =>
