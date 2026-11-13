@@ -97,7 +97,7 @@ static async Task<TokenResponse> IssueTokens(WipUser user, WipDbContext db, ICon
 v1.MapPost("/auth/login", async (LoginRequest request, UserManager<WipUser> users, WipDbContext db, IConfiguration config, CancellationToken ct) =>
 {
     var user = await users.FindByEmailAsync(request.Email);
-    if (user is null || await users.IsLockedOutAsync(user)) return Results.Unauthorized();
+    if (user is null || !user.IsActive || await users.IsLockedOutAsync(user)) return Results.Unauthorized();
     var valid = await users.CheckPasswordAsync(user, request.Password);
     if (!valid)
     {
@@ -114,7 +114,7 @@ v1.MapPost("/auth/refresh", async (RefreshRequest request, UserManager<WipUser> 
     var session = await db.RefreshSessions.SingleOrDefaultAsync(x => x.TokenHash == AuthCrypto.HashRefresh(request.RefreshToken), ct);
     if (session is null || session.RevokedAtUtc is not null || session.ExpiresAtUtc <= DateTime.UtcNow) return Results.Unauthorized();
     var user = await users.FindByIdAsync(session.UserId.ToString());
-    if (user is null || await users.IsLockedOutAsync(user)) return Results.Unauthorized();
+    if (user is null || !user.IsActive || await users.IsLockedOutAsync(user)) return Results.Unauthorized();
     session.RevokedAtUtc = DateTime.UtcNow;
     var response = await IssueTokens(user, db, config, ct);
     session.ReplacedBySessionId = await db.RefreshSessions
@@ -125,6 +125,63 @@ v1.MapPost("/auth/refresh", async (RefreshRequest request, UserManager<WipUser> 
     await db.SaveChangesAsync(ct);
     return Results.Ok(response);
 }).WithTags("Authentication");
+
+static Guid? GetUserId(ClaimsPrincipal principal)
+{
+    var value = principal.FindFirstValue(JwtRegisteredClaimNames.Sub)
+        ?? principal.FindFirstValue(ClaimTypes.NameIdentifier);
+    return Guid.TryParse(value, out var id) ? id : null;
+}
+
+static ProfileResponse ToProfile(WipUser user) =>
+    new(user.Id, user.Email ?? string.Empty, user.FirstName, user.LastName, user.IsActive, user.DeactivatedAtUtc);
+
+var profile = v1.MapGroup("/me").RequireAuthorization().WithTags("Profile");
+
+profile.MapGet("", async (ClaimsPrincipal principal, UserManager<WipUser> users, CancellationToken ct) =>
+{
+    var id = GetUserId(principal);
+    if (id is null) return Results.Unauthorized();
+    var user = await users.FindByIdAsync(id.Value.ToString());
+    return user is null ? Results.NotFound() : Results.Ok(ToProfile(user));
+});
+
+profile.MapPut("", async (UpdateProfileRequest request, ClaimsPrincipal principal, UserManager<WipUser> users, CancellationToken ct) =>
+{
+    var id = GetUserId(principal);
+    if (id is null) return Results.Unauthorized();
+    var user = await users.FindByIdAsync(id.Value.ToString());
+    if (user is null) return Results.NotFound();
+    user.FirstName = request.FirstName?.Trim();
+    user.LastName = request.LastName?.Trim();
+    var result = await users.UpdateAsync(user);
+    return result.Succeeded ? Results.Ok(ToProfile(user)) : Results.ValidationProblem(result.Errors
+        .GroupBy(error => error.Code)
+        .ToDictionary(group => group.Key, group => group.Select(error => error.Description).ToArray()));
+});
+
+profile.MapDelete("", async (ClaimsPrincipal principal, UserManager<WipUser> users, WipDbContext db, CancellationToken ct) =>
+{
+    var id = GetUserId(principal);
+    if (id is null) return Results.Unauthorized();
+    var user = await users.FindByIdAsync(id.Value.ToString());
+    if (user is null) return Results.NotFound();
+    if (user.IsActive)
+    {
+        user.IsActive = false;
+        user.DeactivatedAtUtc = DateTime.UtcNow;
+        var result = await users.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            return Results.ValidationProblem(result.Errors
+                .GroupBy(error => error.Code)
+                .ToDictionary(group => group.Key, group => group.Select(error => error.Description).ToArray()));
+        }
+        await db.RefreshSessions.Where(session => session.UserId == user.Id && session.RevokedAtUtc == null)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(session => session.RevokedAtUtc, DateTime.UtcNow), ct);
+    }
+    return Results.NoContent();
+});
 
 v1.MapPost("/auth/logout", async (RefreshRequest request, WipDbContext db, CancellationToken ct) =>
 {
