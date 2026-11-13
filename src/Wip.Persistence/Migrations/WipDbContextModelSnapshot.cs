@@ -125,6 +125,134 @@ namespace Wip.Persistence.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Wip.Persistence.CollectionRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CollectorKey")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("CompletedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CompletenessStatus")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExecutionId")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("RequestedFromUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("RequestedToUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("WorkflowId")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkflowId", "ExecutionId")
+                        .IsUnique()
+                        .HasFilter("[WorkflowId] IS NOT NULL AND [ExecutionId] IS NOT NULL");
+
+                    b.HasIndex("Provider", "CollectorKey", "StartedAtUtc");
+
+                    b.ToTable("CollectionRuns", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.CollectionSourceAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AttemptNumber")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("CollectionRunId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CompletedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Endpoint")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ErrorCategory")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int?>("HttpStatusCode")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsRetryable")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("NextAttemptAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadHash")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("SourceKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("StartedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CollectionRunId", "Status");
+
+                    b.HasIndex("CollectionRunId", "SourceKey", "AttemptNumber")
+                        .IsUnique();
+
+                    b.ToTable("CollectionSourceAttempts", (string)null);
+                });
+
             modelBuilder.Entity("Wip.Persistence.Identity.WipRole", b =>
                 {
                     b.Property<Guid>("Id")
@@ -229,6 +357,99 @@ namespace Wip.Persistence.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.IngestionError", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<Guid>("CollectionRunId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsRetryable")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime?>("NextAttemptAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("OccurredAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ResolvedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("SourceAttemptId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceAttemptId");
+
+                    b.HasIndex("CollectionRunId", "OccurredAtUtc");
+
+                    b.HasIndex("IsRetryable", "NextAttemptAtUtc");
+
+                    b.ToTable("IngestionErrors", (string)null);
+                });
+
+            modelBuilder.Entity("Wip.Persistence.IngestionIdempotencyRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Dataset")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime>("FirstSeenAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("LastSeenAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayloadHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTime?>("ProcessedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Provider", "Dataset", "IdempotencyKey")
+                        .IsUnique();
+
+                    b.ToTable("IngestionIdempotency", (string)null);
                 });
 
             modelBuilder.Entity("Wip.Persistence.Module", b =>
@@ -562,6 +783,55 @@ namespace Wip.Persistence.Migrations
                     b.ToTable("PasswordResetTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Wip.Persistence.RawProviderPayload", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CollectionRunId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Dataset")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("PayloadHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("ReceivedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("RetentionUntilUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("SourceAttemptId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CollectionRunId");
+
+                    b.HasIndex("SourceAttemptId");
+
+                    b.HasIndex("Provider", "Dataset", "PayloadHash")
+                        .IsUnique();
+
+                    b.ToTable("RawProviderPayloads", (string)null);
+                });
+
             modelBuilder.Entity("Wip.Persistence.RefreshSession", b =>
                 {
                     b.Property<Guid>("Id")
@@ -664,6 +934,29 @@ namespace Wip.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Wip.Persistence.CollectionSourceAttempt", b =>
+                {
+                    b.HasOne("Wip.Persistence.CollectionRun", null)
+                        .WithMany()
+                        .HasForeignKey("CollectionRunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Wip.Persistence.IngestionError", b =>
+                {
+                    b.HasOne("Wip.Persistence.CollectionRun", null)
+                        .WithMany()
+                        .HasForeignKey("CollectionRunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Wip.Persistence.CollectionSourceAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("SourceAttemptId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
             modelBuilder.Entity("Wip.Persistence.PasswordResetToken", b =>
                 {
                     b.HasOne("Wip.Persistence.Identity.WipUser", null)
@@ -671,6 +964,20 @@ namespace Wip.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Wip.Persistence.RawProviderPayload", b =>
+                {
+                    b.HasOne("Wip.Persistence.CollectionRun", null)
+                        .WithMany()
+                        .HasForeignKey("CollectionRunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Wip.Persistence.CollectionSourceAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("SourceAttemptId")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("Wip.Persistence.RefreshSession", b =>

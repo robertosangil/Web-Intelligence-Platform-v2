@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Wip.Api\Wip.Api.csproj" />
+    <ProjectReference Include="..\..\src\Wip.Persistence\Wip.Persistence.csproj" />
   </ItemGroup>
 
 </Project>
