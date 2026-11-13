@@ -7,8 +7,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Wip.Api.Contracts.V1;
 using Wip.Api.Authorization;
+using Wip.Application.Email;
+using Wip.Infrastructure.Email;
 using Wip.Persistence;
 using Wip.Persistence.Identity;
 
@@ -47,6 +50,13 @@ builder.Services.AddAuthorization(options => options.AddPolicy("Administrator", 
     policy.RequireAuthenticatedUser().RequireRole("Administrator", "Super Admin")));
 builder.Services.AddScoped<IAuthorizationHandler, ModuleAccessHandler>();
 builder.Services.AddPersistence(builder.Configuration);
+builder.Services.Configure<Smtp2GoOptions>(builder.Configuration.GetSection(Smtp2GoOptions.SectionName));
+builder.Services.AddSingleton(builder.Configuration.GetSection(Smtp2GoOptions.SectionName).Get<Smtp2GoOptions>() ?? new Smtp2GoOptions());
+builder.Services.AddHttpClient<IEmailSender, Smtp2GoEmailSender>((serviceProvider, client) =>
+{
+    var options = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<Smtp2GoOptions>>().Value;
+    client.BaseAddress = new Uri(options.BaseUrl);
+});
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 if (allowedOrigins.Length > 0)
@@ -100,6 +110,8 @@ static async Task<TokenResponse> IssueTokens(WipUser user, UserManager<WipUser> 
     return new TokenResponse(access, raw, accessExpiry, refreshExpiry);
 }
 
+static string HashResetToken(string token) => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+
 v1.MapPost("/auth/login", async (LoginRequest request, UserManager<WipUser> users, WipDbContext db, IConfiguration config, CancellationToken ct) =>
 {
     var user = await users.FindByEmailAsync(request.Email);
@@ -130,6 +142,38 @@ v1.MapPost("/auth/refresh", async (RefreshRequest request, UserManager<WipUser> 
         .FirstAsync(ct);
     await db.SaveChangesAsync(ct);
     return Results.Ok(response);
+}).WithTags("Authentication");
+
+v1.MapPost("/auth/forgot-password", async (ForgotPasswordRequest request, UserManager<WipUser> users, WipDbContext db, IEmailSender emailSender, IConfiguration config, CancellationToken ct) =>
+{
+    var user = await users.FindByEmailAsync(request.Email.Trim());
+    if (user is not null && user.IsActive)
+    {
+        var raw = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
+        var now = DateTime.UtcNow;
+        db.PasswordResetTokens.Add(new PasswordResetToken { Id = Guid.NewGuid(), UserId = user.Id, TokenHash = HashResetToken(raw), Purpose = "password-reset", CreatedAtUtc = now, ExpiresAtUtc = now.AddMinutes(config.GetValue<int?>("PasswordReset:TokenExpiryMinutes") ?? 30) });
+        await db.SaveChangesAsync(ct);
+        var resetPath = config["PasswordReset:ResetPath"] ?? "/reset-password";
+        var body = $"Use the password reset path {resetPath} with the one-time token supplied by this message.";
+        try { await emailSender.SendAsync(new EmailMessage(user.Email!, "WIP v2 password reset", body), ct); } catch { /* do not reveal provider/account state */ }
+    }
+    return Results.Accepted();
+}).WithTags("Authentication");
+
+v1.MapPost("/auth/reset-password", async (ResetPasswordRequest request, UserManager<WipUser> users, WipDbContext db, CancellationToken ct) =>
+{
+    var user = await users.FindByEmailAsync(request.Email.Trim());
+    if (user is null || !user.IsActive) return Results.BadRequest(new { error = "The password reset request is invalid or expired." });
+    var tokenHash = HashResetToken(request.Token);
+    var token = await db.PasswordResetTokens.SingleOrDefaultAsync(x => x.UserId == user.Id && x.Purpose == "password-reset" && x.TokenHash == tokenHash && x.UsedAtUtc == null && x.ExpiresAtUtc > DateTime.UtcNow, ct);
+    if (token is null) return Results.BadRequest(new { error = "The password reset request is invalid or expired." });
+    var result = await users.ResetPasswordAsync(user, request.Token, request.NewPassword);
+    if (!result.Succeeded) return Results.BadRequest(new { error = "The password reset request is invalid or expired." });
+    token.UsedAtUtc = DateTime.UtcNow;
+    await users.UpdateSecurityStampAsync(user);
+    await db.RefreshSessions.Where(x => x.UserId == user.Id && x.RevokedAtUtc == null).ExecuteUpdateAsync(x => x.SetProperty(y => y.RevokedAtUtc, DateTime.UtcNow), ct);
+    await db.SaveChangesAsync(ct);
+    return Results.NoContent();
 }).WithTags("Authentication");
 
 static Guid? GetUserId(ClaimsPrincipal principal)

@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Wip.Worker\Wip.Worker.csproj" />
+    <ProjectReference Include="..\..\src\Wip.Infrastructure\Wip.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Wip.Application\Wip.Application.csproj" />
   </ItemGroup>
 
 </Project>
