@@ -6,3 +6,5 @@ public sealed record TokenResponse(string AccessToken, string RefreshToken, Date
 
 public sealed record ProfileResponse(Guid Id, string Email, string? FirstName, string? LastName, bool IsActive, DateTime? DeactivatedAtUtc);
 public sealed record UpdateProfileRequest(string? FirstName, string? LastName);
+public sealed record PermissionsResponse(IReadOnlyList<string> Roles, IReadOnlyList<PermissionModuleResponse> Modules);
+public sealed record PermissionModuleResponse(string Key, string Name, string GroupKey, int SortOrder);

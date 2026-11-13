@@ -74,19 +74,21 @@ if (allowedOrigins.Length > 0)
 
 var v1 = app.MapGroup("/api/v1");
 
-static string CreateToken(WipUser user, IConfiguration config, DateTime now, out DateTime expires)
+static string CreateToken(WipUser user, IEnumerable<string> roles, IConfiguration config, DateTime now, out DateTime expires)
 {
     var jwt = config.GetSection("Jwt");
     expires = now.AddMinutes(jwt.GetValue<int?>("AccessTokenMinutes") ?? 10);
     var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["SigningKey"]!));
     var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-    var claims = new[] { new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()), new Claim(ClaimTypes.Email, user.Email ?? string.Empty) };
+    var claims = new List<Claim> { new(JwtRegisteredClaimNames.Sub, user.Id.ToString()), new(ClaimTypes.Email, user.Email ?? string.Empty) };
+    claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
     return new JwtSecurityTokenHandler().WriteToken(new JwtSecurityToken(jwt["Issuer"], jwt["Audience"], claims, now, expires, credentials));
 }
-static async Task<TokenResponse> IssueTokens(WipUser user, WipDbContext db, IConfiguration config, CancellationToken ct)
+static async Task<TokenResponse> IssueTokens(WipUser user, UserManager<WipUser> users, WipDbContext db, IConfiguration config, CancellationToken ct)
 {
     var now = DateTime.UtcNow;
-    var access = CreateToken(user, config, now, out var accessExpiry);
+    var roles = await users.GetRolesAsync(user);
+    var access = CreateToken(user, roles, config, now, out var accessExpiry);
     var refreshExpiry = now.AddDays(config.GetValue<int?>("Jwt:RefreshTokenDays") ?? 30);
     var raw = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
     db.RefreshSessions.Add(new RefreshSession { Id = Guid.NewGuid(), UserId = user.Id, TokenHash = AuthCrypto.HashRefresh(raw), CreatedAtUtc = now, ExpiresAtUtc = refreshExpiry });
@@ -106,7 +108,7 @@ v1.MapPost("/auth/login", async (LoginRequest request, UserManager<WipUser> user
     }
 
     await users.ResetAccessFailedCountAsync(user);
-    return Results.Ok(await IssueTokens(user, db, config, ct));
+    return Results.Ok(await IssueTokens(user, users, db, config, ct));
 }).WithTags("Authentication");
 
 v1.MapPost("/auth/refresh", async (RefreshRequest request, UserManager<WipUser> users, WipDbContext db, IConfiguration config, CancellationToken ct) =>
@@ -116,7 +118,7 @@ v1.MapPost("/auth/refresh", async (RefreshRequest request, UserManager<WipUser> 
     var user = await users.FindByIdAsync(session.UserId.ToString());
     if (user is null || !user.IsActive || await users.IsLockedOutAsync(user)) return Results.Unauthorized();
     session.RevokedAtUtc = DateTime.UtcNow;
-    var response = await IssueTokens(user, db, config, ct);
+    var response = await IssueTokens(user, users, db, config, ct);
     session.ReplacedBySessionId = await db.RefreshSessions
         .Where(x => x.UserId == user.Id && x.CreatedAtUtc >= session.RevokedAtUtc)
         .OrderByDescending(x => x.CreatedAtUtc)
@@ -182,6 +184,30 @@ profile.MapDelete("", async (ClaimsPrincipal principal, UserManager<WipUser> use
     }
     return Results.NoContent();
 });
+
+profile.MapGet("/permissions", async (ClaimsPrincipal principal, UserManager<WipUser> users, WipDbContext db, CancellationToken ct) =>
+{
+    var id = GetUserId(principal);
+    if (id is null) return Results.Unauthorized();
+    var user = await users.FindByIdAsync(id.Value.ToString());
+    if (user is null) return Results.NotFound();
+
+    var roles = await users.GetRolesAsync(user);
+    var modules = (await (
+        from role in db.Roles
+        join userRole in db.UserRoles on role.Id equals userRole.RoleId
+        join roleModule in db.RoleModules on role.Id equals roleModule.RoleId
+        join module in db.Modules on roleModule.ModuleId equals module.Id
+        where userRole.UserId == user.Id
+        select new PermissionModuleResponse(module.Key, module.Name, module.GroupKey, module.SortOrder))
+        .ToListAsync(ct))
+        .Distinct()
+        .OrderBy(module => module.GroupKey)
+        .ThenBy(module => module.SortOrder)
+        .ToList();
+
+    return Results.Ok(new PermissionsResponse(roles.ToArray(), modules));
+}).WithName("GetMyPermissions");
 
 v1.MapPost("/auth/logout", async (RefreshRequest request, WipDbContext db, CancellationToken ct) =>
 {
