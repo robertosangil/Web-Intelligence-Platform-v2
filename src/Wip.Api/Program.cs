@@ -14,6 +14,7 @@ using Wip.Application.Email;
 using Wip.Infrastructure.Email;
 using Wip.Persistence;
 using Wip.Persistence.Identity;
+using Wip.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,7 @@ builder.Services.AddAuthorization(options => options.AddPolicy("Administrator", 
     policy.RequireAuthenticatedUser().RequireRole("Administrator", "Super Admin")));
 builder.Services.AddScoped<IAuthorizationHandler, ModuleAccessHandler>();
 builder.Services.AddPersistence(builder.Configuration);
+builder.Services.AddSingleton<PasswordResetRateLimiter>();
 builder.Services.Configure<Smtp2GoOptions>(builder.Configuration.GetSection(Smtp2GoOptions.SectionName));
 builder.Services.AddSingleton(builder.Configuration.GetSection(Smtp2GoOptions.SectionName).Get<Smtp2GoOptions>() ?? new Smtp2GoOptions());
 builder.Services.AddHttpClient<IEmailSender, Smtp2GoEmailSender>((serviceProvider, client) =>
@@ -144,9 +146,18 @@ v1.MapPost("/auth/refresh", async (RefreshRequest request, UserManager<WipUser> 
     return Results.Ok(response);
 }).WithTags("Authentication");
 
-v1.MapPost("/auth/forgot-password", async (ForgotPasswordRequest request, UserManager<WipUser> users, WipDbContext db, IEmailSender emailSender, IConfiguration config, CancellationToken ct) =>
+v1.MapPost("/auth/forgot-password", async (ForgotPasswordRequest request, HttpContext httpContext, PasswordResetRateLimiter limiter, UserManager<WipUser> users, WipDbContext db, IEmailSender emailSender, IConfiguration config, CancellationToken ct) =>
 {
-    var user = await users.FindByEmailAsync(request.Email.Trim());
+    var email = request.Email.Trim();
+    var window = TimeSpan.FromMinutes(config.GetValue<int?>("PasswordReset:RateLimitWindowMinutes") ?? 15);
+    var perEmail = config.GetValue<int?>("PasswordReset:RateLimitPerEmail") ?? 3;
+    var perIp = config.GetValue<int?>("PasswordReset:RateLimitPerIp") ?? 10;
+    var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    if (!limiter.IsAllowed(email.ToUpperInvariant(), ipAddress, perEmail, perIp, window, DateTimeOffset.UtcNow))
+    {
+        return Results.Accepted();
+    }
+    var user = await users.FindByEmailAsync(email);
     if (user is not null && user.IsActive)
     {
         var raw = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
